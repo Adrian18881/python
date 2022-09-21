@@ -9,3 +9,9 @@ print("I am " + old)
 2.input:12
 3.Output:I am 12
 """
+old = input("How old are you?")
+print("I am " + old)
+height = input("how high are you?")
+print("I am" + height)
+weight = input("how heavy are you?")
+print("I am" + weight)

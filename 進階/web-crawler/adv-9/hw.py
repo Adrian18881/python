@@ -6,28 +6,27 @@ import os
 import sys
 import requests
 import datetime
-from PIL import Image, ImageTk
 
 os.chdir(sys.path[0])  # 設定工作目錄
 
 
 def get_weather_info():
-    global units
-    city_name = city_name_entry.get()
     send_url = base_url
-    send_url += "appid=" + api_key
-    send_url += "&q=" + city_name
+    send_url += "lat=" + lat_entry.get()
+    send_url += "&lon=" + lon_entry.get()
+    send_url += "&exclude=" + exclude
+    send_url += "&appid=" + api_key
     send_url += "&units=" + units
     send_url += "&lang=" + lang
 
     response = requests.get(send_url)  # 發送請求，獲得天氣資訊
     info = response.json()  # 將json格式轉換為字典
 
-    if "main" in info.keys():  # 如果有main這個key，代表有天氣資訊
+    if "daily" in info.keys():
         global current_temperature
-        current_temperature = info["main"]["temp"]
-        weather_description = info["weather"][0]["description"]
-        icon_code = info["weather"][0]["icon"]
+        current_temperature = info["current"]["temp"]
+        weather_description = info["current"]["weather"][0]["description"]
+        icon_code = info["current"]["weather"][0]["icon"]
 
         # 下載並保存天氣圖標
         icon_url = f"https://openweathermap.org/img/wn/{icon_code}@2x.png"
@@ -43,7 +42,28 @@ def get_weather_info():
 
         temperature_label.config(text=f"溫度: {current_temperature}°C")
         description_label.config(text=f"描述: {weather_description}")
+        city_name_label.config(text=f"城市為:{info['timezone']}")
 
+        xlist = []
+        ylist = []
+        for i in range(7):
+            temp = info["daily"][i]["temp"]["day"]
+            time = datetime.datetime.fromtimestamp(
+                info["daily"][i]["dt"]).strftime("%m/%d")
+            print(f"{time}的溫度是{temp}度")
+            xlist.append(time)
+            ylist.append(temp)
+        font = FontProperties(fname='NotoSansTC-Black.otf', size=14)
+        fig, ax = plt.subplots()
+        ax.plot(xlist, ylist)
+        ax.set_xlabel("7天天氣預測", fontproperties=font)
+        ax.set_ylabel("溫度(°C)", fontproperties=font)
+        ax.set_title("日期", fontproperties=font)
+
+        canvas = FigureCanvasTkAgg(fig, master=window)
+        canvas.draw()
+        canvas = canvas.get_tk_widget()
+        canvas.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
     else:  # 如果沒有main這個key，代表沒有天氣資訊
         description_label.config(text=f"描述: City Not Found")
 
@@ -65,8 +85,16 @@ def on_switch_change():
             temperature_label.config(text=f"溫度: {current_temperature}°F")
 
 
+def on_closing():
+    window.destroy()
+    plt.close('all')
+
+
 api_key = "892da2f13edf3c7f382637760e72d224"
-base_url = "http://api.openweathermap.org/data/2.5/weather?"
+base_url = "https://api.openweathermap.org/data/2.5/onecall?"
+lon = "121.5319"  # Taipei  的經度
+lat = "25.0478"  # Taipei  的緯度
+exclude = "minutely,hourly"  # 不要分鐘級和小時級的資料
 units = "metric"
 lang = "zh_tw"
 
@@ -74,35 +102,38 @@ font_size = 20
 window = tk.Tk()
 window.title("Weather App")
 window.option_add("*font", ("Helvetica", font_size))
-
+window.protocol("WM_DELETE_WINDOW", on_closing)
 style = Style(theme="minty")
 style.configure('my.TButton', font=('Helvetica', font_size))
 style.configure('my.TCheckbutton', font=('Helvetica', font_size))
 
 # 城市名稱輸入框
-city_name_label = Label(window, text="請輸入想搜尋的城市:")
-city_name_label.grid(row=0, column=0)
-city_name_entry = Entry(window)
-city_name_entry.grid(row=0, column=1)
+city_name_label = Label(window, text="目前搜尋到的城市為:")
+city_name_label.grid(row=0, rowspan=2, column=0)
+
+lon_entry = Entry(window)
+lon_entry.grid(row=0, column=1)
+lat_entry = Entry(window)
+lat_entry.grid(row=1, column=1)
 
 # 查詢按鈕
 search_button = Button(window,
                        text="獲得天氣資訊",
                        command=get_weather_info,
                        style='my.TButton')
-search_button.grid(row=0, column=2)
+search_button.grid(row=0, rowspan=2, column=2)
 
 # 天氣圖標
 icon_label = Label(window, text="天氣圖標")
-icon_label.grid(row=1, column=0)
+icon_label.grid(row=2, column=0)
 
 # 溫度標籤
 temperature_label = Label(window, text="溫度: ?°C")
-temperature_label.grid(row=1, column=1)
+temperature_label.grid(row=2, column=1)
 
 # 描述標籤
 description_label = Label(window, text="描述: ?")
-description_label.grid(row=1, column=2)
+description_label.grid(row=2, column=2)
 
 check_type = BooleanVar()
 check_type.set(True)
@@ -114,25 +145,7 @@ check = Checkbutton(window,
                     command=on_switch_change,
                     text="溫度單位(°C/°F)",
                     style='my.TCheckbutton')
-check.grid(row=2, column=1)
-
-
-def on_closing():
-    window.destroy()
-    plt.close('all')
-
-
-def on_closing():
-    window.destroy()
-    plt.close('all')
-
-
-window = tk.Tk()
-window.protocol("WM_DELETE_WINDOW", on_closing)
-style = Style(theme="minty")
-
-draw_button = Button(window, text="Draw Graph", command=draw_graph)
-draw_button.grid(row=1, column=0, padx=10, pady=10)
+check.grid(row=4, column=1)
 
 # 運行應用程式
 window.mainloop()

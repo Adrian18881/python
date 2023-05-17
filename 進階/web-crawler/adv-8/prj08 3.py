@@ -9,8 +9,8 @@ os.chdir(sys.path[0])
 api_key = "892da2f13edf3c7f382637760e72d224"
 
 base_url = "https://api.openweathermap.org/data/2.5/onecall?"
-lon = "121.5319"
-lat = "25.0478"
+lon = "121.5319"  #(經度)
+lat = "25.0478"  #(緯度)
 exclude = "minutely,hourly"
 units = "metric"
 lang = "zh_tw"

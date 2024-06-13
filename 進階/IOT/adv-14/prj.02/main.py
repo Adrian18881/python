@@ -5,7 +5,7 @@ os.environ["OPENAI_API_KEY"] = getpass.getpass()
 
 from langchain_openai import ChatOpenAI
 
-model = ChatOpenAI(model="gpt-4o" , temperature=0.0)
+model = ChatOpenAI(model="gpt-4o", temperature=0.0)
 
 from langchain_core.messages import HumanMessage
 
@@ -28,8 +28,7 @@ while True:
                 不能回答其他的字串
                 """
             ),
-            HumanMessage(content= ans),
+            HumanMessage(content=ans),
         ]
     )
     print(msg.content)
-

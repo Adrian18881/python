@@ -4,7 +4,7 @@
     "MicroPython.executeButton": [
         {
             "text": "▶",
-            "tooltip": "運行",
+            "tooltip": "运行",
             "alignment": "left",
             "command": "extension.executeFile",
             "priority": 3.5
